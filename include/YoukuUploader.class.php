@@ -17,11 +17,11 @@ class YoukuUploader
 	private $upload_server_ip;
 	private $refresh_token;
 
-	public function __construct($client_id, $client_secret) { 
+	public function __construct($client_id, $client_secret) {
 		$this->client_id = $client_id;
 		$this->client_secret = $client_secret;
 	}
-	
+
 	private function getAccessToken($params) {
 		$parameter = array(
 			"client_id"     => $this->client_id,
@@ -35,7 +35,7 @@ class YoukuUploader
 			if (isset($result->error)) {
 				$error = $result->error;
 				throw new UploadException($error->description,$error->code);
-			}		
+			}
 		}catch (UploadException $e) {
 			echo $e->getError();
 			exit;
@@ -64,7 +64,7 @@ class YoukuUploader
 		}
 		return $result;
 	}
-		
+
 	private function uploadCreate($file_name) {
 		$fileSize = fileSize($file_name);
 		$url = 'http://'. $this->upload_server_ip .'/gupload/create_file';
@@ -86,7 +86,7 @@ class YoukuUploader
 		}
 		return $result;
 	}
-		
+
 	private function createSlice() {
 		$url = 'http://'. $this->upload_server_ip .'/gupload/new_slice';
 		$param = array(
@@ -104,11 +104,11 @@ class YoukuUploader
 		}
 		return $result;
 	}
-		
+
 	private function uploadSlice($slice_task_id, $offset, $length, $file_name) {
 		$url =  'http://'.$this->upload_server_ip .'/gupload/upload_slice';
 		$data =$this->readVideoFile($file_name, $offset, $length);
-		$param = array( 
+		$param = array(
 			'upload_token' => $this->upload_token,
             'slice_task_id' => $slice_task_id,
             'offset' => $offset,
@@ -121,13 +121,13 @@ class YoukuUploader
 			if (isset($result->error)) {
 				$error = $result->error;
 				throw new UploadException($error->description,$error->code);
-			}			
+			}
 		}catch (UploadException $e) {
 			echo $e->getError();
 			exit;
 		}
-		return $result;			
-	}	
+		return $result;
+	}
 
 	private function getFileExt($file_name) {
 		$path_parts = pathinfo($file_name);
@@ -140,25 +140,25 @@ class YoukuUploader
 			if (!$handle) {
 				throw new Exception("Could not open the file!");
 			}
-			$data = stream_get_contents($handle, $length, $offset); 
+			$data = stream_get_contents($handle, $length, $offset);
 			fclose($handle);
 			return $data;
 		} catch (Exception $e) {
 			echo "Error (File: ".$e->getFile().", line ".$e->getLine()."): ".$e->getMessage()."\n";
 		}
 	}
-	
+
 	private function commit($uploadServerIp) {
 		$param = array(
 			'access_token' => $this->access_token,
 			'client_id' => $this->client_id,
 			'upload_token' => $this->upload_token,
-			'upload_server_ip' => $uploadServerIp 
+			'upload_server_ip' => $uploadServerIp
 		);
 		try {
 			$result = json_decode(Http::get(self::UPLOAD_COMMIT_URL, $param));
 			if (isset($result->error)) {
-				$error = $result->error;			
+				$error = $result->error;
 				throw new UploadException($error->description,$error->code);
 			}
 		}catch (UploadException $e) {
@@ -178,10 +178,10 @@ class YoukuUploader
 				'client_id' => $this->client_id,
 				'version' => $version,
 				'type' => 'php'
-			);		
-			Http::get(self::VERSION_UPDATE_URL, $param);		
+			);
+			Http::get(self::VERSION_UPDATE_URL, $param);
 			fclose($file);
-		}		
+		}
 	}
 
 	private function check() {
@@ -201,7 +201,7 @@ class YoukuUploader
 		}
 		return $result;
 	}
-	
+
 	private function refreshToken() {
 		$parameter = array(
             "client_id"     => $this->client_id,
@@ -219,7 +219,7 @@ class YoukuUploader
             echo $e->getError();
             exit;
         }
-        return $result;		
+        return $result;
 	}
 
 	private function readRefreshFile($refresh_file) {
@@ -231,7 +231,7 @@ class YoukuUploader
 			fclose($file);
 		}
 	}
-	
+
 	private function writeRefreshFile($refresh_file,$refresh_json_result) {
 		$file = @fopen($refresh_file, "w");
 		if (!$file) echo "Could not open " . $refresh_file . "!\n";
@@ -240,18 +240,18 @@ class YoukuUploader
 			$fw = @fwrite($file, $refreshInfo);
 			if (!$fw) echo "Write refresh file fail!\n";
             fclose($file);
-		}		
+		}
 	}
-	
-	public function upload($upload_process = true, $params = array(),$uploadInfo = array()) { 
+
+	public function upload($upload_process = true, $params = array(),$uploadInfo = array()) {
 		if(isset($params['access_token']) && !empty($params['access_token'])) {
 			$this->access_token = $params['access_token'];
 			if (isset($params['refresh_token']) && !empty($params['refresh_token'])) $this->refresh_token = $params['refresh_token'];
-			$this->readRefreshFile(self::REFRESH_FILE);			
-		}else {	
+			$this->readRefreshFile(self::REFRESH_FILE);
+		}else {
 			echo "Only applys to the clients of partner level!\n";
 			$result = $this->getAccessToken($params);
-			if (isset($result->access_token)) $this->access_token = $result->access_token; 
+			if (isset($result->access_token)) $this->access_token = $result->access_token;
 		}
 		$this->versionUpdate('verlog.txt');
 		$uploadResult = $this->getUploadToken($uploadInfo);
@@ -269,9 +269,9 @@ class YoukuUploader
 		$uploadCreate = $this->uploadCreate($file_name);
 		echo "Uploading start!\n";
 		$finish = false;
-		$transferred = 0;	
+		$transferred = 0;
 
-		$sliceResult = $this->createSlice();	
+		$sliceResult = $this->createSlice();
 		$slice_id = $sliceResult->slice_task_id;
 		$offset = $sliceResult->offset;
 		$length = $sliceResult->length;
@@ -293,14 +293,14 @@ class YoukuUploader
 							break;
 						}else if ($checkResult->status == 2 || $checkResult->status == 3) {
 							$transferred = $checkResult->confirmed_percent;
-						//	sleep(20);					
+						//	sleep(20);
 						}/*else if($checkResult->status == 4) {
 						//	$transferred = $checkResult->confirmed_percent;
 							break;
 						}*/
 					}
 				}while(1);
-			}	
+			}
 			if ($upload_process) echo "Upload progress:{$transferred}%\n";
 		}while(!$finish);
 		if ($finish) {
@@ -310,4 +310,3 @@ class YoukuUploader
 		}
 	}
 }
-?>
