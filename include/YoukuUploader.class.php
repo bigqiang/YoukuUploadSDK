@@ -131,7 +131,10 @@ class YoukuUploader
 
 	private function getFileExt($file_name) {
 		$path_parts = pathinfo($file_name);
-		return $path_parts['extension'];
+		if(isset($path_parts['extension'])) {
+			return $path_parts['extension'];
+		}
+		return '';
 	}
 
 	private function readVideoFile($filename, $offset, $length) {
