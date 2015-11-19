@@ -258,7 +258,7 @@ class YoukuUploader
 		if (isset($uploadResult->error) && $uploadResult->error->code == 1009 && !empty($this->refresh_token)) {
 			$refreshResult = $this->refreshToken();
 			$this->access_token = $refreshResult->access_token;
-			$this->refresh_token = $refreshInfo->refresh_token;
+			$this->refresh_token = $refreshResult->refresh_token;
 			$this->writeRefreshFile(self::REFRESH_FILE,$refreshResult);
 			$uploadResult = $this->getUploadToken($uploadInfo);
 		}
