@@ -16,6 +16,7 @@ class YoukuUploader
 	private $upload_token;
 	private $upload_server_ip;
 	private $refresh_token;
+	private $video_id = "";
 
 	public function __construct($client_id, $client_secret) {
 		$this->client_id = $client_id;
@@ -309,7 +310,18 @@ class YoukuUploader
 		if ($finish) {
 			$commitResult = $this->commit($uploadServerIp);
 			echo "Uploading success!\n";
-			if (isset($commitResult->video_id)) echo "videoid: ". $commitResult->video_id."\n";
+			if (isset($commitResult->video_id)) $this->video_id = $commitResult->video_id;
 		}
+	}
+
+	/**
+	 * Get Youku video id
+	 * @return string
+	 */
+	public function getVideoId() {
+		if(empty($this->video_id)) {
+			exit('Fail to get video id !');
+		}
+		return $this->video_id;
 	}
 }
